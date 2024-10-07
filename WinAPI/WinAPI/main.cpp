@@ -1,6 +1,9 @@
 ﻿#include<Windows.h>
 #include"resource.h"
 
+// глобальные переменные объявлять нельзя, константы можно
+CONST CHAR g_sz_LOGIN_INVITATION[] = "Введите имя пользователя";
+// Процедура окна:
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, INT nCmdShow)
@@ -14,7 +17,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, IN
 	//			n - Number
 	//			lp - Long Pointer
 	//			h - HINSTANCE
-
+	//
 	// типы окон:
 	// 1 - окно сообщения
 	// 2 - диалоговое окно MessageBox()
@@ -38,36 +41,65 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, IN
 	// MB_RIGHT - текст в окне будет по правому краю*/
 
 	DialogBoxParam(hInstance, MAKEINTRESOURCE(IDD_DIALOG1), 0, DlgProc, 0);
-
 	return 0;
 }
 
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	// hwnd - handler to window (обработчик/дескриптор окна - это число , при помощи которого можно обратиться к окну.)
+	// hwnd - handler to window (обработчик/дескриптор окна - это число, при помощи которого можно обратиться к окну.)
 	// uMsg - Message. Сообщение, которое отправляется окну. 
 	// wParam, lParam - это параметры сообщения, у каждого сообщения свой набор параметров.
+
+	//static const char* defaultText = "Введите имя пользователя:";
 
 	switch (uMsg)
 	{
 	case WM_INITDIALOG:		// это соо отпр. 1 раз при инициализации окна
+	{	
+		HWND hEdit = GetDlgItem(hwnd, IDC_EDIT_LOGIN);
+		SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)g_sz_LOGIN_INVITATION);
+	}
 		break;
 	case WM_COMMAND:		// обраб. нажатие кнопок и др. действия пользователя
+		// ResourceID берем здесь
 		switch (LOWORD(wParam))
 		{
+		case IDC_EDIT_LOGIN:
+		{
+			CONST INT SIZE = 256;
+			CHAR sz_buffer[SIZE]{};
+			SendMessage((HWND)lParam, WM_GETTEXT, SIZE, (LPARAM)sz_buffer);
+
+			/*
+			WM_COMMAND
+			LOWORD(wParam) = ResourceID
+			HIWORD(wParam) = NotificationCode(EN_SETFOCUS)
+			*/
+
+			// NotoficationCode берем здесь
+			if (HIWORD(wParam) == EN_SETFOCUS && strcmp(sz_buffer, g_sz_LOGIN_INVITATION) == 0)
+					SendMessage((HWND)lParam, WM_SETTEXT, 0, (LPARAM)"");
+			if (HIWORD(wParam) == EN_KILLFOCUS && strcmp(sz_buffer, "") == 0)
+					SendMessage((HWND)lParam, WM_SETTEXT, 0, (LPARAM)g_sz_LOGIN_INVITATION);
+			// EN - Edit Notification
+			/* 
+			Функция strcmp(const char* str1, const char* str2) - сравнивает строки и вовзр.знач - е типа 'int'
+				возвращает:
+				0 - строки идентичны;
+				!0 -  строки отличаются; (<0 - 1 строка меньше 2-ой; >0 - 1 строка больше 2-ой)
+			*/
+		}
+		break;
 		case IDC_BUTTON_COPY:
 		{
 			// 1. создаем буфер:
 			CONST INT SIZE = 256;
 			CHAR sz_buffer[SIZE] = {}; // sz - string zero (null terminated line - c-string)
-
 			// 2. получаем обработчик текстовых полей:
 			HWND hEditLogin = GetDlgItem(hwnd, IDC_EDIT_LOGIN);
 			HWND hEditPassword = GetDlgItem(hwnd, IDC_EDIT_PASSWORD);
-
 			// 3. считываем содержимое поля 'Login' в буфер:
 			SendMessage(hEditLogin, WM_GETTEXT, SIZE, (LPARAM)sz_buffer);
-
 			// 4. Записываем полученный текст в текстовое поле 'Password':
 								// если указатель, то его нужно всегда явно преобразовывать в LPARAM
 			SendMessage(hEditPassword, WM_SETTEXT, 0, (LPARAM)sz_buffer);
@@ -80,5 +112,6 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		EndDialog(hwnd, 0);
 		break;
 	}
+
 	return false;
 }
