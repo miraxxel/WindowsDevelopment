@@ -1,4 +1,6 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include<Windows.h>
+#include<cstdio>
 #include"resource.h"
 
 CONST CHAR* g_COMBO_BOX_ITEMS[] = { "This", "is", "my", "first", "Combo", "Box" }; // массив строк
@@ -35,7 +37,31 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		// CB_SETCURSEL - ComboBox Set Current Selection
 	}
 		break;
-	case WM_COMMAND:
+	case WM_COMMAND: // здесь обрабатываем кнопки
+		switch (LOWORD(wParam))
+		{
+		case IDOK:
+		{ // область видимости - фигурные скобки, чтобы объявить переменную, нужно указать область видимости у нужного нам case
+			HWND hCombo = GetDlgItem(hwnd, IDC_COMBO1);
+			// любой эл-т интерфейса виндовс является окном, обращаемся к окну мы через SendMessage
+			INT i = SendMessage(hCombo, CB_GETCURSEL, 0, 0);
+
+			// чтобы прочитать строку из списка, нужно куда-то её записать
+			CONST INT SIZE = 256;
+			CHAR sz_buffer[SIZE]{};
+			SendMessage(hCombo, CB_GETLBTEXT, i, (LPARAM)sz_buffer);
+			CHAR sz_message[SIZE]{};
+			sprintf(sz_message, "Вы выбрали пункт №%i со значением \"%s\".", i, sz_buffer);
+				// функция sprintf() выполняет форматирование строк, т.е. позволяет вставить в строку переменные значения (имеет произвольное кол-во аргументов)
+				// спецификатор %i - целое число
+				// спецификатор %s - строка
+				// на месте где стоит этот спецификатор будет встроенно соответствующее значение
+			MessageBox(hwnd, sz_message, "Info", MB_OK | MB_ICONINFORMATION);
+		}
+		break;
+		case IDCANCEL:
+			EndDialog(hwnd, 0);
+		}
 		break;
 	case WM_CLOSE:
 		EndDialog(hwnd, 0);
