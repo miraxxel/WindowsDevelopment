@@ -1,15 +1,25 @@
-﻿namespace Clock
+﻿using System.IO;
+using System.Reflection;
+
+namespace Clock
 {
     public partial class MainForm : Form
     {
         ColorDialog backgroundColorDialog; // если не инициализируем, то получаются не объекты, а ссылки
         ColorDialog foregroundColorDialog;
+        ChooseFont chooseFontDialog;
         public MainForm() // конструктор формы
         {
             InitializeComponent();
+            SetFontDirectory();
+
             this.TransparencyKey = Color.Empty;
+
             backgroundColorDialog = new ColorDialog();
             foregroundColorDialog = new ColorDialog();
+
+            chooseFontDialog = new ChooseFont();
+            
             SetVisibility(false);
             this.Location = new Point
                 (
@@ -19,6 +29,14 @@
             this.Text += $" Location: {this.Location.X}x{this.Location.Y}";
         }
 
+        void SetFontDirectory()
+        {
+            string location = Assembly.GetEntryAssembly().Location;     // получ. полн. адрес испол. файла
+            string path = Path.GetDirectoryName(location);              // из адреса извлек. путь к файлу
+            //MessageBox.Show(path);
+            Directory.SetCurrentDirectory($"{path}\\..\\..\\..\\Fonts");// переходим в каталог со шрифтами
+            //MessageBox.Show(Directory.GetCurrentDirectory());
+        }
         private void timer1_Tick(object sender, EventArgs e)
         {
             // неявно добавленный обработчик события - самая обычная функция (кто отправил событие и параметры)
@@ -115,7 +133,10 @@
 
         private void fontsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //if(Font.)
+            if(chooseFontDialog.ShowDialog(this)==DialogResult.OK)
+            {
+                labelTime.Font = chooseFontDialog.ChosenFont;
+            }
         }
     }
 }
